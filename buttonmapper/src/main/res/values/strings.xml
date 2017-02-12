@@ -1,0 +1,46 @@
+<resources>
+	<string name="app_name">Buttons</string>
+
+	<string name="home">Home</string>
+	<string name="back">Back</string>
+	<string name="appswitch">Recent apps</string>
+	<string name="power">Screen lock</string>
+	<string name="menu">Menu</string>
+	<string name="disable">Disable</string>
+
+
+	<string name="press">Press</string>
+	<string name="touch">Touch</string>
+	<string name="long_touch">Long touch</string>
+	<string name="swipe_left">Left swipe</string>
+	<string name="swipe_right">Right swipe</string>
+
+	<string name="softkeys">Show softkeys</string>
+
+	<string-array name="actions">
+		<item>@string/disable</item>
+		<item>@string/home</item>
+		<item>@string/back</item>
+		<item>@string/appswitch</item>
+		<item>@string/power</item>
+		<item>@string/menu</item>
+	</string-array>
+
+	<string-array name="actions_value">
+		<item>null</item>
+		<item>HOME</item>
+		<item>BACK</item>
+		<item>APP_SWITCH</item>
+		<item>POWER</item>
+		<item>MENU</item>
+	</string-array>
+	<string name="apply">apply changes</string>
+	<string name="reboot_dialog_title">Reboot the phone?</string>
+	<string name="reboot_dialog_message">Changes were applied successfully, to implement them you need to restart your phone.</string>
+	<string name="reboot">reboot now</string>
+	<string name="do_not_reboot">reboot later</string>
+
+	<string name="root_dialog_title">Root access</string>
+	<string name="root_dialog_message">This app cannot work without root access.</string>
+	<string name="close">close</string>
+</resources>

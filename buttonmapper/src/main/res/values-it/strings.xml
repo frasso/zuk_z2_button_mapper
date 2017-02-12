@@ -1,0 +1,45 @@
+<resources>
+	<string name="app_name">Pulsanti</string>
+
+	<string name="home">Home</string>
+	<string name="back">Indietro</string>
+	<string name="appswitch">App recenti</string>
+	<string name="power">Blocco dispositivo</string>
+	<string name="menu">Menu</string>
+	<string name="disable">Disabilita</string>
+
+
+	<string name="press">Pressione</string>
+	<string name="touch">Tocco</string>
+	<string name="long_touch">Tocco prolungato</string>
+	<string name="swipe_left">Swipe a sinistra</string>
+	<string name="swipe_right">Swipe a destra</string>
+
+	<string name="softkeys">Mostra tasti virtuali</string>
+	<string name="apply">applica modifiche</string>
+	<string name="reboot_dialog_title">Riavviare il telefono?</string>
+
+	<string-array name="actions">
+		<item>@string/disable</item>
+		<item>@string/home</item>
+		<item>@string/back</item>
+		<item>@string/appswitch</item>
+		<item>@string/power</item>
+		<item>@string/menu</item>
+	</string-array>
+
+	<string-array name="actions_value">
+		<item>null</item>
+		<item>HOME</item>
+		<item>BACK</item>
+		<item>APP_SWITCH</item>
+		<item>POWER</item>
+		<item>MENU</item>
+	</string-array>
+	<string name="do_not_reboot">riavvia in seguito</string>
+	<string name="reboot">riavvia ora</string>
+	<string name="reboot_dialog_message">Le modifiche sono state applicate correttamente, per renderle effettive è necessario riavviare il telefono.</string>
+	<string name="root_dialog_title">Accesso root</string>
+	<string name="root_dialog_message">Questa applicazione non può funzionare senza l\'accesso root.</string>
+	<string name="close">chiudi</string>
+</resources>

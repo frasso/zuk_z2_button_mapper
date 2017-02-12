@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<SwitchPreference
+		android:key="softkeys"
+		android:title="@string/softkeys"
+		android:defaultValue="false"/>
+
+	<PreferenceCategory
+		android:title="U-Touch"/>
+
+	<ListPreference
+		android:key="press"
+		android:title="@string/press"
+		android:entries="@array/actions"
+		android:entryValues="@array/actions_value"
+		android:dialogTitle="@string/press"
+		android:summary="%s"/>
+
+
+	<ListPreference
+		android:key="touch"
+		android:title="@string/touch"
+		android:entries="@array/actions"
+		android:entryValues="@array/actions_value"
+		android:dialogTitle="@string/touch"
+		android:summary="%s"/>
+
+
+	<ListPreference
+		android:key="long_touch"
+		android:title="@string/long_touch"
+		android:entries="@array/actions"
+		android:entryValues="@array/actions_value"
+		android:dialogTitle="@string/long_touch"
+		android:summary="%s"/>
+
+
+	<ListPreference
+		android:key="swipe_left"
+		android:title="@string/swipe_left"
+		android:entries="@array/actions"
+		android:entryValues="@array/actions_value"
+		android:dialogTitle="@string/swipe_left"
+		android:summary="%s"/>
+
+
+	<ListPreference
+		android:key="swipe_right"
+		android:title="@string/swipe_right"
+		android:entries="@array/actions"
+		android:entryValues="@array/actions_value"
+		android:dialogTitle="@string/swipe_right"
+		android:summary="%s"/>
+</PreferenceScreen>
