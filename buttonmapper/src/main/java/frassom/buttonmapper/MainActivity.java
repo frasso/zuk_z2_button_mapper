@@ -49,17 +49,14 @@ public class MainActivity extends Activity {
 		//KEY per il salvataggio nel OnSaveInstanceState()
 		private static final String KEY_SCANCODES = "scancode";
 		private static final String KEY_VALUES = "values";
-		private static final String KEY_START_SCANCODES = "start_scancode";
-		private static final String KEY_START_VALUES = "start_values";
 		private static final String KEY_MAINKEYS = "mainkeys";
 		
 		//SparseArray per il salvataggio di tutti i tasti
 		SparseArray<String> mKeylayout = new SparseArray<>();
-		SparseArray<String> startKeylayout = new SparseArray<>();
 
 		//Properties per il salvataggio del build.prop
 		Properties mProperties = new Properties();
-		String startMainkeysVal;
+		boolean hasMainkeysInFile = true;
 
 		//Button 'applica modifiche'
 		Button applyButton;
@@ -85,46 +82,46 @@ public class MainActivity extends Activity {
 					//aggiungo i pair dei *.kl allo SparseArray
 					helper.addToMap(mKeylayout, Helper.PRESS_KEYLAYOUT_NAME);
 					helper.addToMap(mKeylayout, Helper.SOFT_TOUCH_KEYLAYOUT_NAME);
-					startKeylayout = mKeylayout.clone();
 				} else {
 					//restore dei valori precedenti se è presente un savedInstanceState
-					int[] scancodes = savedInstanceState.getIntArray(KEY_SCANCODES),
-						startScancodes = savedInstanceState.getIntArray(KEY_START_SCANCODES);
-					String[] val = savedInstanceState.getStringArray(KEY_VALUES),
-							startVal = savedInstanceState.getStringArray(KEY_START_VALUES);
+					int[] scancodes = savedInstanceState.getIntArray(KEY_SCANCODES);
+					String[] val = savedInstanceState.getStringArray(KEY_VALUES);
 
 					//popolo gli sparse array
 					if (scancodes != null && val != null) {
 						for (int i = 0; i < scancodes.length; i++) {
 							mKeylayout.put(scancodes[i], val[i]);
-							if (startScancodes != null && startVal != null) {
-								startKeylayout.put(startScancodes[i], startVal[i]);
-							}
 						}
 					}
 				}
 
 				//creo il Properties dal file locale (sempre valido)
 				helper.addBuildProperties(mProperties);
-				startMainkeysVal = mProperties.getProperty(Helper.MAINKEYS, "1");
-				//se c'è un precedente stato salvato correggo la key Helper.MAINKEYS
-				if (savedInstanceState != null)
-					mProperties.setProperty(Helper.MAINKEYS,
-							savedInstanceState.getString(KEY_MAINKEYS, mProperties.getProperty(Helper.MAINKEYS, "1")));
+				hasMainkeysInFile = !mProperties.getProperty(Helper.MAINKEYS, "null").equals("null");
+				if(hasMainkeysInFile) {
+					//se c'è un precedente stato salvato correggo la key Helper.MAINKEYS
+					if (savedInstanceState != null)
+						mProperties.setProperty(Helper.MAINKEYS,
+								savedInstanceState.getString(KEY_MAINKEYS, mProperties.getProperty(Helper.MAINKEYS, "1")));
+				}
 
 				//inizializzo i valori delle sharedPreference per mostrarli successivamente
-				PreferenceManager.getDefaultSharedPreferences(getContext()).edit().
+				SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getContext()).edit().
 						putString("press", mKeylayout.get(102, Helper.DISABLE)).
 						putString("touch", mKeylayout.get(158, Helper.DISABLE)).
 						putString("long_touch", mKeylayout.get(183, Helper.DISABLE)).
 						putString("swipe_right", mKeylayout.get(249, Helper.DISABLE)).
-						putString("swipe_left", mKeylayout.get(254, Helper.DISABLE)).
-						putBoolean("softkeys", mProperties.getProperty(Helper.MAINKEYS).equals("0")).
-						apply();
+						putString("swipe_left", mKeylayout.get(254, Helper.DISABLE));
+				if(hasMainkeysInFile)
+					editor.putBoolean("softkeys", mProperties.getProperty(Helper.MAINKEYS, "1").equals("0"));
+				editor.apply();
 
 				//mostro il preferenceScreen
 				setPreferenceScreen(null);
 				addPreferencesFromResource(R.xml.preferences);
+
+				if(!hasMainkeysInFile)
+					getPreferenceScreen().removePreference(getPreferenceManager().findPreference("softkeys"));
 			}else{
 				//l'app non viene eseguita come root, mostro il dialog per informare l'utente
 
@@ -179,7 +176,6 @@ public class MainActivity extends Activity {
 				@SuppressLint("InflateParams")
 				View buttonLayout = ((Activity)mContext).getLayoutInflater().inflate(R.layout.apply_button, null);
 				applyButton = (Button) buttonLayout.findViewById(R.id.apply);
-				setButtonEnabled();
 				list.addFooterView(buttonLayout);
 			}
 		}
@@ -201,36 +197,9 @@ public class MainActivity extends Activity {
 			}
 			if(finalKey != -1)
 				mKeylayout.put(finalKey, sharedPreferences.getString(key, Helper.DISABLE));
-
-			setButtonEnabled();
 		}
 
-		/**Controlla che gli stati iniziali siano diversi da quelli finali e
-		 * abilita/disabilita il bottone*/
-		private void setButtonEnabled(){
-			if(!helper.isRooted())
-				return;
-
-			//controllo se è stato effettuato qualche cambiamento al keylayout
-			boolean equals = mKeylayout.size() == startKeylayout.size();
-			if(equals){
-				for (int i = 0; i< mKeylayout.size(); i++){
-					int keyToCheck = mKeylayout.keyAt(i);
-
-					if(!mKeylayout.get(keyToCheck).equals(startKeylayout.get(keyToCheck)))
-						equals = false;
-				}
-			}
-			//controllo per lo switch dei softkeys
-			if(equals && !mProperties.getProperty(Helper.MAINKEYS).equals(startMainkeysVal)){
-				equals = false;
-			}
-			//abilito/disabilito il bottone di salvataggio se è stata effettuata una modifica
-			if(applyButton!=null)
-				applyButton.setEnabled(!equals);
-		}
-
-		//AsinkTask usato per applicare le modifiche ai keylayout e
+		//AsyncTask usato per applicare le modifiche ai keylayout e
 		//del build.prop in /system alla pressione dell'applyButton
 		public class commitTask extends AsyncTask<Void,Void,Void> {
 
@@ -239,17 +208,17 @@ public class MainActivity extends Activity {
 				StringBuilder sb = new StringBuilder();
 
 				//fpc1020tp.kl
-				for(int i = 0; i < mKeylayout.size(); i++) {
+				for (int i = 0; i < mKeylayout.size(); i++) {
 					int key = mKeylayout.keyAt(i);
 
-					if(key != 102 && key != -2){
-						if(mKeylayout.get(key).equalsIgnoreCase(Helper.DISABLE))
+					if (key != 102 && key != -2) {
+						if (mKeylayout.get(key).equalsIgnoreCase(Helper.DISABLE))
 							sb.append('#');
 						sb.append("key ")
 								.append(key)
 								.append("   ")
 								.append(mKeylayout.get(key));
-						if(key == 158 || key == 183) {
+						if (key == 158 || key == 183) {
 							for (int j = 0; j < 25 - (10 + mKeylayout.get(key).length()); j++) {
 								sb.append(' ');
 							}
@@ -270,26 +239,28 @@ public class MainActivity extends Activity {
 						.append("key 528   FOCUS")
 						.append('\n')
 						.append("key 766   CAMERA");
-				if(!mKeylayout.get(102, "none").equalsIgnoreCase("none")){
-					if(!mKeylayout.get(102).equalsIgnoreCase(Helper.DISABLE))
+				if (!mKeylayout.get(102, "none").equalsIgnoreCase("none")) {
+					if (!mKeylayout.get(102).equalsIgnoreCase(Helper.DISABLE))
 						sb.append("\nkey ")
 								.append(102)
 								.append("   ")
 								.append(mKeylayout.get(102));
 				}
-				helper.makeFile(sb.toString(),Helper.PRESS_KEYLAYOUT_NAME);
+				helper.makeFile(sb.toString(), Helper.PRESS_KEYLAYOUT_NAME);
 
 				//build.brop
-				String appFilesDir = getContext().getFilesDir().getPath();
+				if(hasMainkeysInFile){
+					String appFilesDir = getContext().getFilesDir().getPath();
 
-				try {
-					FileOutputStream os = new FileOutputStream(new File(appFilesDir, "build.prop"));
-					mProperties.store(os, null);
-					os.close();
-				} catch (IOException e) {
-					e.printStackTrace();
+					try {
+						FileOutputStream os = new FileOutputStream(new File(appFilesDir, "build.prop"));
+						mProperties.store(os, null);
+						os.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					helper.setPermission(appFilesDir + "/build.prop", "600");
 				}
-				helper.setPermission(appFilesDir+"/build.prop", "600");
 
 				helper.push();
 				return null;
@@ -313,14 +284,7 @@ public class MainActivity extends Activity {
 								}
 							}
 						})
-						.setNegativeButton(R.string.do_not_reboot, new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog, int which) {
-								startKeylayout = mKeylayout.clone();
-								startMainkeysVal = mProperties.getProperty(Helper.MAINKEYS, "1");
-								setButtonEnabled();
-							}
-						})
+						.setNegativeButton(R.string.do_not_reboot, null)
 						.create().show();
 			}
 		}
@@ -329,19 +293,13 @@ public class MainActivity extends Activity {
 		public void onSaveInstanceState(Bundle outState) {
 			super.onSaveInstanceState(outState);
 			int size = mKeylayout.size();
-			int[] scancodes = new int[size], startScancodes = new int[size];
-			String[] val = new String[size], startVal = new String[size];
+			int[] scancodes = new int[size];
+			String[] val = new String[size];
 
 			for(int i=0; i<size; i++){
 				scancodes[i] = mKeylayout.keyAt(i);
 				val[i] = mKeylayout.get(scancodes[i]);
-
-				startScancodes[i] = startKeylayout.keyAt(i);
-				startVal[i] = startKeylayout.get(startScancodes[i]);
 			}
-
-			outState.putStringArray(KEY_START_VALUES, startVal);
-			outState.putIntArray(KEY_START_SCANCODES, startScancodes);
 			outState.putStringArray(KEY_VALUES, val);
 			outState.putIntArray(KEY_SCANCODES, scancodes);
 			outState.putString(KEY_MAINKEYS, mProperties.getProperty(Helper.MAINKEYS, "1"));
