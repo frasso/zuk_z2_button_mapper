@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.SparseArray;
 
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -145,7 +144,6 @@ class Helper {
 			shellInput.writeBytes("cp " + PRESS_KEYLAYOUT_PATH + " " + appFileDir + "\n");
 
 			shellInput.writeBytes("cp /system/build.prop " + appFileDir + "\n");
-			shellInput.writeBytes("chmod 777 "+ appFileDir +"/build.prop\n");
 
 			//smonto /system r/o
 			shellInput.writeBytes("mount -o ro,remount -t ext4 /dev/block/bootdevice/by-name/system /system\n");
